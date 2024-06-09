@@ -50,5 +50,38 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
+const pestSchema = new mongoose.Schema({
+    pestname: String,
+    pestname_kr: String,
+    pesticide: String,
+    pesticide_kr: String
+  });
+  
+  const Pest = mongoose.model('Pest', pestSchema, 'pests');
+  
+  app.get('/pests', async (req, res) => {
+    const pestname = req.query.pestname;
+  
+    try { 
+      
+      const pest = await Pest.findOne({ 
+          $or: [
+              { pestname: pestname },
+              { pestname_kr: pestname }
+            ]
+          });
+  
+      if (!pest) {
+        res.status(404).json({ error: 'Ricepest not found' });
+      } else {
+        const { pestname, pestname_kr, pesticide, pesticide_kr } = pest;
+        res.json({ pestname, pestname_kr, pesticide, pesticide_kr }); 
+      }
+    } catch (error) {
+      console.error('Error retrieving pest information:', error);
+      res.status(500).json({ error: 'An error occurred' });
+    }
+  });
+  
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
